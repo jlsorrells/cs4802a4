@@ -147,13 +147,10 @@ svg.selectAll(".text")
     .attr("font-family", "monospace")
     .attr("xml:space", "preserve")
     .text(function (d) { return d; });
-
-var split1 = outMiddle12.split("");
-var split2 = outMiddle23.split("");
-var split3 = outMiddle31.split("");
-var rectSize = width / split1.length;
+    
+var rectSize = width / out1.length;
 svg.selectAll(".rect")
-    .data(outMiddle12.split(""))
+    .data(out1.split("")) // create a rectangle for each character in the result
     .enter()
     .append("rect")
     .attr("x", function (d, i) { return i * rectSize; })
@@ -161,16 +158,12 @@ svg.selectAll(".rect")
     .attr("width", rectSize)
     .attr("height", 50)
     .attr("fill", function (d, i) {
-        var x = (split1[i] == matchChar) + (split2[i] == matchChar) + (split3[i] == matchChar);
-        if (x == 3) {
-            return "#00FF00";
-        } else if (x == 1) {
-            return "#0000FF";
-        } else {
-            return "#FF0000";
-        }
+        // color based on how many matches and gaps
+        var m = (outMiddle12.charAt(i) == matchChar) + (outMiddle23.charAt(i) == matchChar) + (outMiddle31.charAt(i) == matchChar);
+        var g = (out1.charAt(i) == gapChar) + (out2.charAt(i) == gapChar) + (out3.charAt(i) == gapChar);
+        var score = (m - g + 2) * 51;
+        return d3.rgb(255 - score, 0, score);
     });
-
 
 
     
