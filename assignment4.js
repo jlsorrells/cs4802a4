@@ -138,7 +138,8 @@ var output = "\n" + out1 + "\n" + outMiddle12 + "\n" + out2 + "\n" + outMiddle23
     out3 + "\n" + outMiddle31 + "\n" + out1;
     
 svg.selectAll(".text")
-    .data([out1, outMiddle12, out2, outMiddle23, out3, outMiddle31, out1])
+    // display seq1 again at end to visually compare it with seq3
+    .data([out1, outMiddle12, out2, outMiddle23, out3, outMiddle31, out1]) 
     .enter()
     .append("text")
     .attr("x", 0)
@@ -148,6 +149,7 @@ svg.selectAll(".text")
     .attr("xml:space", "preserve")
     .text(function (d) { return d; });
     
+// size rectangles so that they all fit on the screen
 var rectSize = width / out1.length;
 svg.selectAll(".rect")
     .data(out1.split("")) // create a rectangle for each character in the result
