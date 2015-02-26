@@ -148,6 +148,40 @@ svg.selectAll(".text")
     .attr("xml:space", "preserve")
     .text(function (d) { return d; });
 
+var split1 = outMiddle12.split("");
+var split2 = outMiddle23.split("");
+var split3 = outMiddle31.split("");
+var rectSize = width / split1.length;
+svg.selectAll(".rect")
+    .data(outMiddle12.split(""))
+    .enter()
+    .append("rect")
+    .attr("x", function (d, i) { return i * rectSize; })
+    .attr("y", 180)
+    .attr("width", rectSize)
+    .attr("height", 50)
+    .attr("fill", function (d, i) {
+        var x = (split1[i] == matchChar) + (split2[i] == matchChar) + (split3[i] == matchChar);
+        if (x == 3) {
+            return "#00FF00";
+        } else if (x == 1) {
+            return "#0000FF";
+        } else {
+            return "#FF0000";
+        }
+    });
 
 
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
