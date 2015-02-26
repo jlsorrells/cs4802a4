@@ -14,8 +14,8 @@ var svg = d3.select("body").append("svg")
 //var seq1 = "GAATTCAGTTA";
 //var seq2 = "GGATCGA";
 var seq1 = "MSTKVTVELQRLPHAEGLPLPAYQTAEAAGLDLMAAVPEDAPLTLASGRYALVPTGLAIALPPGHEAQVRPRSGLAAKHGVTVLNSPGTIDADYRGEIKVILINHGAAAFVIKRGERIAQMVIAPVVQAALVPVATLSATDRGAGGFGSTGR";
-//var seq2 = "MIKIKLTHPDCMPKIGSEDAAGMDLRAFFGTNPAADLRAIAPGKSLMIDTGVAVEIPRGWFGLVVPRSSLGKRHLMIANTAGVIDSDYRGTIKMNLYNYGSEMQTLENFERLCQLVVLPHYSTHNFKIVDELEETIRGEGGFGSSGSK";
-var seq2 = "MTSEDQSLKKQKLESTQSLKVYLRSPKGKVPTKGSALAAGYDLYSAEAATIPAHGQGLVSTDISIIVPIGTYGRVAPRSGLAVKHGISTGAGVIDADYRGEVKVVLFNHSEKDFEIKEGDRIAQLVLEQIVNADIKEISLEELDNTERGEGGFGSTGKN";
+var seq2 = "MIKIKLTHPDCMPKIGSEDAAGMDLRAFFGTNPAADLRAIAPGKSLMIDTGVAVEIPRGWFGLVVPRSSLGKRHLMIANTAGVIDSDYRGTIKMNLYNYGSEMQTLENFERLCQLVVLPHYSTHNFKIVDELEETIRGEGGFGSSGSK";
+var seq3 = "MTSEDQSLKKQKLESTQSLKVYLRSPKGKVPTKGSALAAGYDLYSAEAATIPAHGQGLVSTDISIIVPIGTYGRVAPRSGLAVKHGISTGAGVIDADYRGEVKVVLFNHSEKDFEIKEGDRIAQLVLEQIVNADIKEISLEELDNTERGEGGFGSTGKN";
 
 
 var gapChar = "-";
@@ -29,90 +29,124 @@ var gapScore = -2;
 
 // calculate the score matrix
 for (var i = 0; i <= seq1.length; i++) {
-    var column = [];
-    var pathColumn = [];
-    scoreMatrix.push(column);
-    pathMatrix.push(pathColumn);
+    var row = [];
+    var pathRow = [];
+    scoreMatrix.push(row);
+    pathMatrix.push(pathRow);
     for (var j = 0; j <= seq2.length; j++) {
-        var match = -Infinity, 
-            gap1 = -Infinity,
-            gap2 = -Infinity;
-        // match/mismatch scores
-        if (i > 0 && j > 0) {
-            match = scoreMatrix[i-1][j-1] + (seq1[i-1] == seq2[j-1] ? matchScore : mismatchScore);
-        }
-        // gap scores
-        if (i > 0) {
-            gap1 = scoreMatrix[i-1][j] + gapScore;
-        }
-        if (j > 0) {
-            gap2 = scoreMatrix[i][j-1] + gapScore;
-        }
-        
-        if (i == 0 && j == 0) {
-            match = 0;
-        }
-        
-        var best = Math.max(match, gap1, gap2);
-        column.push(best);
-        
-        // update the path that we have taken
-        if (best == match && i > 0 && j > 0) {
-            pathColumn.push([1,1]);
-        } else if (best == gap2 && j > 0) {
-            pathColumn.push([0,1]);
-        } else if (i > 0) {
-            pathColumn.push([1,0]);
-        } else {
-            pathColumn.push([0,0]);
+        var column = [];
+        var pathColumn = [];
+        row.push(column);
+        pathRow.push(pathColumn);
+        for (var k = 0; k <= seq3.length; k++) {
+            var m123 = -Infinity,
+                m12g3 = -Infinity,
+                m13g2 = -Infinity,
+                m23g1 = -Infinity,
+                m1g23 = -Infinity,
+                m2g13 = -Infinity,
+                m3g12 = -Infinity;
+            // calculate scores
+            // all match
+            if (i > 0 && j > 0 && k > 0) {
+                m123 = scoreMatrix[i-1][j-1][k-1] + (seq1[i-1] == seq2[j-1] ? matchScore : mismatchScore) + 
+                    (seq1[i-1] == seq3[k-1] ? matchScore : mismatchScore) + 
+                    (seq2[j-1] == seq3[k-1] ? matchScore : mismatchScore);
+            }
+            // two match, one gap
+            if (i > 0 && j > 0) {
+                m12g3 = scoreMatrix[i-1][j-1][k] + (seq1[i-1] == seq2[j-1] ? matchScore : mismatchScore) + gapScore;
+            }
+            if (i > 0 && k > 0) {
+                m13g2 = scoreMatrix[i-1][j][k-1] + (seq1[i-1] == seq3[k-1] ? matchScore : mismatchScore) + gapScore;
+            }
+            if (j > 0 && k > 0) {
+                m23g1 = scoreMatrix[i][j-1][k-1] + (seq2[j-1] == seq3[k-1] ? matchScore : mismatchScore) + gapScore;
+            }
+            // two gaps
+            if (i > 0) {
+                m1g23 = scoreMatrix[i-1][j][k] + gapScore * 2;
+            }
+            if (j > 0) {
+                m2g13 = scoreMatrix[i][j-1][k] + gapScore * 2;
+            }
+            if (k > 0) {
+                m3g12 = scoreMatrix[i][j][k-1] + gapScore * 2;
+            }
+            
+            // starting cell
+            if (i == 0 && j == 0 && k == 0) {
+                m123 = 0;
+            }
+            
+            var best = Math.max(m123,m12g3,m13g2,m23g1,m1g23,m2g13,m3g12);
+            column.push(best);
+            
+            // update the path that we have taken
+            if (best == m123) {
+                pathColumn.push([1,1,1]);
+            } else if (best == m12g3) {
+                pathColumn.push([1,1,0]);
+            } else if (best == m13g2) {
+                pathColumn.push([1,0,1]);
+            } else if (best == m23g1) {
+                pathColumn.push([0,1,1]);
+            } else if (best == m1g23) {
+                pathColumn.push([1,0,0]);
+            } else if (best == m2g13) {
+                pathColumn.push([0,1,0]);
+            } else if (best == m3g12) {
+                pathColumn.push([0,0,1]);
+            } else {
+                pathColumn.push([0,0,0]);
+                console.log("??? " + i + " " + j);
+            }
         }
     }
 }
 
 var out1 = "";
 var out2 = "";
-var outMiddle = "";
+var out3 = "";
+var outMiddle12 = "";
+var outMiddle23 = "";
+var outMiddle31 = "";
 
 // backtrack to find sequence
 var i = seq1.length;
 var j = seq2.length;
-console.log("score = " + scoreMatrix[i][j]);
-while (i != 0 || j != 0) {
-    var direction = pathMatrix[i][j];
+var k = seq3.length;
+console.log("score = " + scoreMatrix[i][j][k]);
+while (i != 0 || j != 0 || k != 0) {
+    var direction = pathMatrix[i][j][k];
     out1 = (direction[0] ? seq1[i-1] : gapChar) + out1;
     out2 = (direction[1] ? seq2[j-1] : gapChar) + out2;
-    outMiddle = (direction[0] && direction[1] && seq1[i-1] == seq2[j-1] ? matchChar : " ") + outMiddle;
+    out3 = (direction[2] ? seq3[k-1] : gapChar) + out3;
+    outMiddle12 = (direction[0] && direction[1] && seq1[i-1] == seq2[j-1] ? matchChar : " ") + outMiddle12;
+    outMiddle23 = (direction[1] && direction[2] && seq2[j-1] == seq3[k-1] ? matchChar : " ") + outMiddle23;
+    outMiddle31 = (direction[2] && direction[0] && seq3[k-1] == seq1[i-1] ? matchChar : " ") + outMiddle31;
     i -= direction[0];
     j -= direction[1];
-    if (direction[0] == 0 && direction[1] == 0) {
+    k -= direction[2];
+    if (direction[0] == 0 && direction[1] == 0 && direction[2] == 0) {
         console.log("something went wrong");
         break;
     }
 }
 
-var output = "\n" + out1 + "\n" + outMiddle + "\n" + out2;
-
-svg.append("text")
-    .attr("x", 0)
-    .attr("y", 0)
-    .attr("font-size", "15px")
-    .attr("font-family", "monospace")
-    .text(out1);
+var output = "\n" + out1 + "\n" + outMiddle12 + "\n" + out2 + "\n" + outMiddle23 + "\n" + 
+    out3 + "\n" + outMiddle31 + "\n" + out1;
     
-svg.append("text")
+svg.selectAll(".text")
+    .data([out1, outMiddle12, out2, outMiddle23, out3, outMiddle31, out1])
+    .enter()
+    .append("text")
     .attr("x", 0)
-    .attr("y", 25)
+    .attr("y", function (d, i) { return i * 25; })
     .attr("font-size", "15px")
     .attr("font-family", "monospace")
     .attr("xml:space", "preserve")
-    .text(outMiddle);
-    
-svg.append("text")
-    .attr("x", 0)
-    .attr("y", 50)
-    .attr("font-size", "15px")
-    .attr("font-family", "monospace")
-    .text(out2);
+    .text(function (d) { return d; });
 
 
 
